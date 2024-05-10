@@ -7,7 +7,7 @@ import { FaChessBishop } from "react-icons/fa6";
 import { FaChessQueen } from "react-icons/fa";
 import { FaChessKing } from "react-icons/fa";
 import Piece from './Piece';
-import { CheckValidMove, FindTargetSquares } from './MoveValidation';
+import { FindTargetSquares } from './MoveValidation';
 
 
 type PieceType = 'r' | 'b' | 'n' | 'q' | 'k' | 'p';
@@ -20,8 +20,8 @@ const Board = () => {
     const [board, setBoard] = useState(Array(64).fill(''));
     const [blackPosition,setBlackPostition] = useState<any>({
         0:'r',
-        1:'b',
-        2:'r',
+        1:'n',
+        2:'b',
         3:'q',
         4:'k',
         5:'b',
@@ -46,8 +46,8 @@ const Board = () => {
         54:'p',
         55:'p',
         56:'r',
-        57:'b',
-        58:'r',
+        57:'n',
+        58:'b',
         59:'q',
         60:'k',
         61:'b',
@@ -57,7 +57,7 @@ const Board = () => {
     const [selectedPiece,setSelectedPiece] = useState(0);
     const [isselectedPiece,setisSelectedPiece] = useState(false);
     const [targetSquares, setTargetSquares] = useState< Number[]>([]);
-    
+    const [whiteTurn, setWhiteTurn] = useState(false);
 
     const Pieces: IndexedPiece = {
         'p': <FaChessPawn size={40} />,
@@ -99,12 +99,14 @@ const HandleMouseMovement = (event: React.MouseEvent<HTMLDivElement, MouseEvent>
     setisSelectedPiece(true);
     setSelectedPiece(index);
     FindTargetSquares(targetSquares, setTargetSquares,blackPosition[index],true,index, blackPosition,whitePosition );
+    setWhiteTurn(false);
   }
   else if( Pieces[whitePosition[index]]){
     setTargetSquares([]);
     setisSelectedPiece(true);
     setSelectedPiece(index);
     FindTargetSquares(targetSquares, setTargetSquares,whitePosition[index],false,index,  blackPosition,whitePosition  );
+    setWhiteTurn(true);
   }
   else {
     setisSelectedPiece(false);
@@ -115,18 +117,21 @@ const HandleMouseMovement = (event: React.MouseEvent<HTMLDivElement, MouseEvent>
   console.log(selectedPiece)
 
     if(blackPosition[selectedPiece] && isselectedPiece){
-        if(!CheckValidMove(selectedPiece,index,blackPosition[selectedPiece],true,targetSquares, setTargetSquares)) 
+        if(!targetSquares.includes(index)) 
             {return false; }
+        // if(!CheckValidMove(selectedPiece,index,blackPosition[selectedPiece],true,targetSquares, setTargetSquares)) 
+        //     {return false; }
         playSound();
         let tempObj = blackPosition;
         const temp = tempObj[selectedPiece];
         delete tempObj[selectedPiece];
         tempObj[index] = temp;
         setBlackPostition(tempObj)
+        setTargetSquares([])
         // setSelectedPiece(tempObj)
     }
     else if(whitePosition[selectedPiece] && isselectedPiece){
-        if(!CheckValidMove(selectedPiece,index,whitePosition[selectedPiece],false,targetSquares, setTargetSquares)) 
+         if(!targetSquares.includes(index)) 
             {return false; }
         playSound();
         let tempObj = whitePosition;
@@ -134,6 +139,7 @@ const HandleMouseMovement = (event: React.MouseEvent<HTMLDivElement, MouseEvent>
         delete tempObj[selectedPiece];
         tempObj[index] = temp;
         setWhiteostition(tempObj)
+        setTargetSquares([])
         // setSelectedPiece(tempObj)
     }
 
