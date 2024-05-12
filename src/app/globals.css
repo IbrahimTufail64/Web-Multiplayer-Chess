@@ -19,3 +19,16 @@
 .body{
   background-color: black;
 }
+.board-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Rotate 180deg for black's turn */
+  transform: rotate(180deg) scaleX(-1);
+  /* Optional: Flip horizontally for mirrored view */
+  /* Inherit background color from container (optional) */
+  background-color: inherit;
+}

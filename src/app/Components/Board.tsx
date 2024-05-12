@@ -18,7 +18,7 @@ interface IndexedPiece {
 
 const Board = () => {
     const [board, setBoard] = useState(Array(64).fill(''));
-    const [blackPosition,setBlackPostition] = useState<any>({
+    const [blackPosition,setBlackPostition] = useState<any>({ 
         0:'r',
         1:'n',
         2:'b',
@@ -58,6 +58,19 @@ const Board = () => {
     const [isselectedPiece,setisSelectedPiece] = useState(false);
     const [targetSquares, setTargetSquares] = useState< Number[]>([]);
     const [whiteTurn, setWhiteTurn] = useState(false);
+    const [boardIndexOffset, setboardIndexOffset] = useState(0); // defines a board inverstion index that is zero by default and 63 on black turn to invet index logic
+
+    useEffect(()=>{
+      const timeoutId = setTimeout(() => {
+    // Code to execute after the delay
+      if(whiteTurn) setboardIndexOffset(63);
+      else setboardIndexOffset(0);
+  }, 400);
+
+  // Cleanup function to clear the timeout when the component unmounts
+  return () => clearTimeout(timeoutId);
+      
+    },[whiteTurn])
 
     const Pieces: IndexedPiece = {
         'p': <FaChessPawn size={40} />,
@@ -82,6 +95,12 @@ const Board = () => {
 const playSound = ()=>{
     new Audio('https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move-self.mp3').play()
 }
+const CaptureSound = ()=>{
+    new Audio('https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/capture.mp3').play()
+}
+const CheckSound = ()=>{
+    new Audio('https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move-check.mp3').play()
+}
 
 
 const HandleMouseMovement = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -90,23 +109,23 @@ const HandleMouseMovement = (event: React.MouseEvent<HTMLDivElement, MouseEvent>
   const col = Math.floor(event.clientX / GRID_SIZE);
 
   // Calculate array index (assuming a 7x7 chessboard)
-  const index = row * 8 + col;
+  const index = Math.abs(boardIndexOffset-(row * 8 + col));
 
   console.log('array index:', index);
   
-  if(Pieces[blackPosition[index]] ){
+  if(Pieces[blackPosition[index]] && whiteTurn){
     setTargetSquares([]);
     setisSelectedPiece(true);
     setSelectedPiece(index);
     FindTargetSquares(targetSquares, setTargetSquares,blackPosition[index],true,index, blackPosition,whitePosition );
-    setWhiteTurn(false);
+    
   }
-  else if( Pieces[whitePosition[index]]){
+  else if( Pieces[whitePosition[index]] && !whiteTurn){
     setTargetSquares([]);
     setisSelectedPiece(true);
     setSelectedPiece(index);
     FindTargetSquares(targetSquares, setTargetSquares,whitePosition[index],false,index,  blackPosition,whitePosition  );
-    setWhiteTurn(true);
+
   }
   else {
     setisSelectedPiece(false);
@@ -115,32 +134,42 @@ const HandleMouseMovement = (event: React.MouseEvent<HTMLDivElement, MouseEvent>
   }
   console.log(isselectedPiece)
   console.log(selectedPiece)
-
-    if(blackPosition[selectedPiece] && isselectedPiece){
+// here index is the new position and selectedPiece is the current position of the piece
+    if(blackPosition[selectedPiece] && isselectedPiece && whiteTurn){
         if(!targetSquares.includes(index)) 
             {return false; }
-        // if(!CheckValidMove(selectedPiece,index,blackPosition[selectedPiece],true,targetSquares, setTargetSquares)) 
-        //     {return false; }
-        playSound();
+        
         let tempObj = blackPosition;
+        // set new position for the piece
         const temp = tempObj[selectedPiece];
+        // take the enemy piece if their positions overlap
+        if(whitePosition[index]) {
+          delete whitePosition[index];
+          CaptureSound();
+        }
+        else playSound();
         delete tempObj[selectedPiece];
         tempObj[index] = temp;
         setBlackPostition(tempObj)
-        setTargetSquares([])
-        // setSelectedPiece(tempObj)
+        setTargetSquares([]);
+        setWhiteTurn(false);
     }
-    else if(whitePosition[selectedPiece] && isselectedPiece){
+    else if(whitePosition[selectedPiece] && isselectedPiece && !whiteTurn){
          if(!targetSquares.includes(index)) 
             {return false; }
-        playSound();
         let tempObj = whitePosition;
         const temp = tempObj[selectedPiece];
+        // take the enemy piece if their positions overlap
+        if(blackPosition[index]) {
+          delete blackPosition[index];
+          CaptureSound();
+        }
+        else playSound();
         delete tempObj[selectedPiece];
         tempObj[index] = temp;
         setWhiteostition(tempObj)
         setTargetSquares([])
-        // setSelectedPiece(tempObj)
+        setWhiteTurn(true);
     }
 
   
@@ -149,14 +178,16 @@ const HandleMouseMovement = (event: React.MouseEvent<HTMLDivElement, MouseEvent>
 
     
   return (
-    <div className='grid grid-cols-8 gap-0 w-[640px] relative'>
+    <div >
+      <div className={`grid grid-cols-8 gap-0 w-[640px] relative`}>
         {board.map((square:string,idx:number) =>{
         return <div key={idx}   onMouseDown={(event)=>HandleMouseMovement(event)}
-            className={`${printColor(idx)  ? 'bg-[#EBD3A9]': 'bg-[#725344]'} ${targetSquares.includes(idx) && 'bg-[#e8b45a] border border-[#f0d19b]'} w-[80px] h-[80px] flex justify-center items-center`}>
-                <Piece blackPiece={Pieces[blackPosition[idx]]} whitePiece={Pieces[whitePosition[idx]]} />
+            className={`${printColor(idx)  ? 'bg-[#EBD3A9]': 'bg-[#725344]'} ${targetSquares.includes(Math.abs(boardIndexOffset-idx)) && 'bg-[#e8b45a] border border-[#f0d19b]'} w-[80px] h-[80px] flex justify-center items-center`}>
+                <Piece blackPiece={Pieces[blackPosition[Math.abs(boardIndexOffset-idx)]]} whitePiece={Pieces[whitePosition[Math.abs(boardIndexOffset-idx)]]} />
                 
             </div>
         })}
+    </div>
     </div>
   )
 }

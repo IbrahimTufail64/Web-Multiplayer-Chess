@@ -1,44 +1,6 @@
 const number_of_columns = 8;
 
 
-// export const CheckValidMove= 
-//     (prevIndex:number, 
-//     index:number,
-//     pieceType: string,
-//     isBlack:Boolean,
-//     targetSquare:Number[],
-//     setTargetSquare:React.Dispatch<React.SetStateAction<Number[]>>):Boolean =>{
-//  const  X1= Math.floor(prevIndex / number_of_columns);
-//  const Y1 = prevIndex % number_of_columns;
-//  const  X2 = Math.floor(index / number_of_columns);
-//  const Y2 = index % number_of_columns;
-//  console.log('before',X1, Y1);
-//  console.log('after',X2, Y2);
-// console.log(pieceType);
-
-
-
-//  switch(pieceType){
-//     case 'r':
-//         return (X1 === X2 || Y1 === Y2);
-//     case 'b':
-//         return (Math.abs(X1 - X2) === Math.abs(Y1 - Y2));
-//     case 'q':
-//         return (X1 === X2 || Y1 === Y2 || Math.abs(X1 - X2) === Math.abs(Y1 - Y2));
-//     case 'k':
-//         return (Math.abs(X1 - X2) <= 1 && Math.abs(Y1 - Y2) <= 1);
-//     case 'n':
-//         return (Math.abs(X1 - X2) === 2 && Math.abs(Y1 - Y2) === 1 || Math.abs(X1 - X2) === 1 && Math.abs(Y1 - Y2) === 2);
-//  }
-//  if(isBlack){
-//     if(X1 === 1&& X2>X1) return X2 - X1 <=2 && Y2 === Y1
-//     return X2 - X1 ===1 && Y2 === Y1
-//  }
-//  else{
-//     if(X1 === 6 && X1 - X2 <=2 && Y2 === Y1 && X2<X1) {console.log(X1,Y1,X2,Y2); return true;}
-//     return X1 - X2 ===1 && Y2 === Y1
-//  }
-// }
 
 
 export const FindTargetSquares = ( 
@@ -53,6 +15,8 @@ export const FindTargetSquares = (
 
         let temp:Number[] = targetSquare;
         temp = [];
+        let Qtemp1:Number[] = [];
+        let Qtemp2:Number[] = [];
         const  X1= Math.floor(index / number_of_columns);
         const Y1 = index % number_of_columns;
         
@@ -65,13 +29,14 @@ export const FindTargetSquares = (
         const Y2:number = i % number_of_columns;
             
             switch(pieceType){
-                case 'r':
+                case 'r' :
                     if(X1 === X2 || Y1 === Y2)
                         {
                         whitePosition[i]  &&  Blockwhite.push(i);
                         blackPosition[i] &&  Blockblack.push(i);
 
-                        temp = TargetSetter(X2,Y2,temp);
+                        // temp = TargetSetter(X2,Y2,temp);
+                        Qtemp1 = TargetSetter(X2,Y2,Qtemp1);
                         }
                         break;
                 case 'b':
@@ -79,14 +44,27 @@ export const FindTargetSquares = (
                         whitePosition[i]  &&  Blockwhite.push(i);
                         blackPosition[i] &&  Blockblack.push(i);
 
-                           temp = TargetSetter(X2,Y2,temp); console.log(X2,Y2);
+                        Qtemp2 = TargetSetter(X2,Y2,Qtemp2);
+                        // temp = TargetSetter(X2,Y2,temp); console.log(X2,Y2);
                         }
                     break;
                 case 'q':
-                    if(X1 === X2 || Y1 === Y2 || Math.abs(X1 - X2) === Math.abs(Y1 - Y2)){
-                           temp = TargetSetter(X2,Y2,temp); console.log(X2,Y2);
-                        }
-                    break;
+                    if(X1 === X2 || Y1 === Y2)
+                        {
+                        whitePosition[i]  &&  Blockwhite.push(i);
+                        blackPosition[i] &&  Blockblack.push(i);
+
+                        // temp = TargetSetter(X2,Y2,temp);
+                        Qtemp1 = TargetSetter(X2,Y2,Qtemp1);
+                    }
+                    else if(Math.abs(X1 - X2) === Math.abs(Y1 - Y2) && X1 !==X2){
+                        whitePosition[i]  &&  Blockwhite.push(i);
+                        blackPosition[i] &&  Blockblack.push(i);
+
+                        Qtemp2 = TargetSetter(X2,Y2,Qtemp2);
+                        // temp = TargetSetter(X2,Y2,temp); console.log(X2,Y2);
+                    }
+                        break;
                 case 'k':
                     if(Math.abs(X1 - X2) <= 1 && Math.abs(Y1 - Y2) <= 1){
                         if(whitePosition[i] && !isBlack){
@@ -95,7 +73,7 @@ export const FindTargetSquares = (
                         else if(blackPosition[i] && isBlack){
                             break;
                         } 
-                           temp = TargetSetter(X2,Y2,temp); console.log(X2,Y2);
+                           temp = TargetSetter(X2,Y2,temp); 
                         }
                     break;
                 case 'n':
@@ -106,11 +84,12 @@ export const FindTargetSquares = (
                         else if(blackPosition[i] && isBlack){
                             break;
                         }   
-                        temp = TargetSetter(X2,Y2,temp);console.log(X2,Y2); 
+                        temp = TargetSetter(X2,Y2,temp);
                     }
                 break;
              }
-            //  if((whitePosition[i] || blackPosition[i])&&pieceType === 'p')break;
+           
+
             if(isBlack && pieceType === 'p'){
                     
                     if(X1 === 1 && X2 - X1 <=2 && Y2 === Y1 && X2>X1){
@@ -131,9 +110,18 @@ export const FindTargetSquares = (
         // console.log('Block',Block);
         }
 
-        pieceType === 'r' && (temp = RookEval(X1,Y1,Blockwhite,Blockblack,temp,isBlack))
-        pieceType === 'b' && (temp = BishopEval(X1,Y1,Blockwhite,Blockblack,temp,isBlack))
-        console.log('temp',temp);
+        pieceType === 'r' && (temp = RookEval(X1,Y1,Blockwhite,Blockblack,Qtemp1,isBlack))
+        pieceType === 'b' && (temp = BishopEval(X1,Y1,Blockwhite,Blockblack,Qtemp2,isBlack));
+         // for queen piece to separate rook and bishop moves then cancatenate them
+        if(pieceType === 'q'){
+            Qtemp1 = RookEval(X1,Y1,Blockwhite,Blockblack,Qtemp1,isBlack);
+            Qtemp2 = BishopEval(X1,Y1,Blockwhite,Blockblack,Qtemp2,isBlack);
+            temp = [...Qtemp1,...Qtemp2];
+        }
+        if(pieceType === 'p'){
+           temp = PawnEval(X1,Y1,whitePosition,blackPosition,temp,isBlack)
+        }
+
         // temp.push(index);
         setTargetSquare(temp);
 
@@ -156,7 +144,7 @@ const RookEval = (X1:number,Y1:number,Blockwhite:number[],Blockblack:number[],te
     })
     
     let Eval = EvalFunction(X1,Y1,subArr);
-    console.log('Eval',Eval);
+    // console.log('Eval',Eval);
     let top:number[][] =[];
     let bottom:number[][] =[];
     let left:number[][]=[];
@@ -190,7 +178,7 @@ const RookEval = (X1:number,Y1:number,Blockwhite:number[],Blockblack:number[],te
     newArr = IncludesPiece(left,Blockwhite,Blockblack,isBlack,newArr);
     newArr = IncludesPiece(bottom,Blockwhite,Blockblack,isBlack,newArr);
 
-    console.log('newArr',newArr);
+    // console.log('newArr',newArr);
 
     return newArr;
 }
@@ -222,10 +210,10 @@ const BishopEval = (X1:number,Y1:number,Blockwhite:number[],Blockblack:number[],
         if(a[1]<0){
             TopSide = false;
         }
-        console.log(a);
+        // console.log(a);
     });
     if(count === 2) RightSide = false;
-    console.log('RightSide',RightSide);
+    // console.log('RightSide',RightSide);
     // console.log('Eval',Eval);
     let topLeft:number[][] =[];
     let topRight:number[][] =[];
@@ -246,7 +234,7 @@ if(!RightSide){
         if( (Math.abs(x - x2) === Math.abs(y - y2))){
             topLeft.push(a);       
         }
-        console.log(a);
+        // console.log(a);
     });
     // Sorting the rest into top right 
     subArr.forEach( (a:any,idx:any) =>{
@@ -300,17 +288,52 @@ if (num !== undefined && !includes) {
   bottomLeft.unshift(num);
 }
 
-    console.log('topleft',topLeft);
-    console.log('topRight',topRight);
-    console.log('bottomLeft',bottomLeft);
-    console.log('bottomRight',bottomRight);
-    console.log('Eval',topLeft);
-    console.log('Eval',Eval);
-
+    // console.log('topleft',topLeft);
+    // console.log('topRight',topRight);
+    // console.log('bottomLeft',bottomLeft);
+    // console.log('bottomRight',bottomRight);
+    // console.log('Eval',topLeft);
+    // console.log('Eval',Eval);
+    // console.log('b Blockwhite blockblack',Blockwhite,Blockblack)
     newArr = IncludesPiece(topRight,Blockwhite,Blockblack,isBlack,newArr);
     newArr = IncludesPiece(topLeft,Blockwhite,Blockblack,isBlack,newArr);
     newArr = IncludesPiece(bottomLeft,Blockwhite,Blockblack,isBlack,newArr);
     newArr = IncludesPiece(bottomRight,Blockwhite,Blockblack,isBlack,newArr);
+
+    console.log('newArr',newArr);
+
+    return newArr;
+}
+
+const PawnEval = (X1:number,Y1:number,Blockwhite:number[],Blockblack:number[],temp:any,isBlack:Boolean)=>{
+    
+
+    let subArr:any = [];
+    let newArr:any = [];
+    subArr = temp;
+    
+    let Eval = EvalFunction(X1,Y1,subArr); // Creates an array containing values, higher values means blocks closer to piece and vice versa
+    if(Eval[0][1]<0) Eval.reverse();
+    // console.log('Eval',Eval,Blockblack,Blockwhite);
+    for (const a of Eval) {
+        if (Blockwhite[a[0]]) {
+            break;
+        }
+        else if(Blockblack[a[0]]){
+            break;
+        }
+        newArr.push(a[0]);
+    }
+    // check for first diagonal positions to take enemy piece
+    let rank = MatrixToRank(X1,Y1);
+    if(!isBlack){
+        if(Blockblack[rank-9]) newArr.push(rank-9);
+        if(Blockblack[rank-7]) newArr.push(rank-7);
+    }
+    if(isBlack){
+        if(Blockwhite[rank+9]) newArr.push(rank+9);
+        if(Blockwhite[rank+7]) newArr.push(rank+7);  
+    }
 
     console.log('newArr',newArr);
 
